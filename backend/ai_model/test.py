@@ -2,7 +2,7 @@ import google.generativeai as genai
 import os
 
 # ✅ Configure Gemini
-genai.configure(api_key="AIzaSyDtcxjCmQynRWm__qMromDVEmYYwoXLTU4")
+genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 model = genai.GenerativeModel('gemini-1.5-flash')
 
 # ✅ Generate Eco Tips
