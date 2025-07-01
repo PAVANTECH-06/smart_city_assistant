@@ -47,6 +47,9 @@ smart\_city\_assistant/
 |---------------|----------|------|
 | ![Summary](https://github.com/PAVANTECH-06/smart_city_assistant/blob/main/screenshots/summarize.png) | ![Forecast](https://github.com/PAVANTECH-06/smart_city_assistant/blob/main/screenshots/forecast.png) | ![Tips](https://github.com/PAVANTECH-06/smart_city_assistant/blob/main/screenshots/tips.png) |
 
+## 🎥 Demo Video
+
+▶️ [![Demo Video](https://github.com/PAVANTECH-06/smart_city_assistant/blob/main/screenshots/demo.png)](https://drive.google.com/file/d/1u453N7XaYV_FV89H-ollSnzUNxIVnzgy/view)
 
 
 ---
