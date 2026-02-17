@@ -49,7 +49,7 @@ smart\_city\_assistant/
 
 ## 🎥 Demo Video
 
-▶️ [![Demo Video](https://github.com/PAVANTECH-06/smart_city_assistant/blob/main/screenshots/demo.png)](https://drive.google.com/file/d/1u453N7XaYV_FV89H-ollSnzUNxIVnzgy/view)
+▶️ [![Demo Video](https://github.com/PAVANTECH-06/smart_city_assistant/blob/main/screenshots/demo.png)](https://drive.google.com/file/d/1o11pc-5Qt7GrO7WK38c7KOerOd7htZ1s/view?usp=drive_link)
 
 
 ---
