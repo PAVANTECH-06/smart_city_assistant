@@ -20,12 +20,30 @@ option = st.sidebar.radio("📊 Choose a Module", [
 if option == "Summarize Policy":
     st.subheader("📄 Summarize a Policy Document")
     text = st.text_area("Enter full policy or document content")
+
     if st.button("Summarize"):
-        if text.strip():
-            res = requests.post(f"{API_URL}/summarize", json={"text": text})
-            st.success(res.json()["summary"])
-        else:
+        if not text.strip():
             st.warning("Please enter some text to summarize.")
+        else:
+            try:
+                res = requests.post(
+                    f"{API_URL}/summarize",
+                    json={"text": text},
+                    timeout=30
+                )
+
+                if res.status_code == 200:
+                    data = res.json()
+                   # print(data)
+                    st.success(data.get("summary", "No summary returned"))
+                else:
+                    st.error("Backend error occurred")
+                    st.text(res.text)
+
+            except requests.exceptions.RequestException as e:
+                st.error("Could not connect to backend")
+                st.text(str(e))
+
 
 elif option == "Submit Feedback":
     st.subheader("📝 Citizen Feedback")
@@ -72,10 +90,26 @@ elif option == "Get Eco Tips":
 
 elif option == "Ask the Assistant":
     st.subheader("🤖 Chat with the Smart City Assistant")
-    query = st.text_input("Ask your question (e.g., How to reduce carbon emissions?)")
+    query = st.text_input("Ask your question")
+
     if st.button("Send"):
-        if query:
-            res = requests.post(f"{API_URL}/chat", json={"query": query})
-            st.success(res.json()["response"])
-        else:
+        if not query:
             st.warning("Please type a question.")
+        else:
+            try:
+                res = requests.post(
+                    f"{API_URL}/chat",
+                    json={"query": query},
+                    timeout=30
+                )
+
+                if res.status_code == 200:
+                    st.success(res.json().get("response", "No response"))
+                else:
+                    st.error("Backend error")
+                    st.text(res.text)
+
+            except requests.exceptions.RequestException as e:
+                st.error("Server not reachable")
+                st.text(str(e))
+

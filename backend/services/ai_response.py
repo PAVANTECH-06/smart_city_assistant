@@ -7,7 +7,7 @@ import os
 # Or, if you specifically set GEMINI_API_KEY:
 genai.configure(api_key="AIzaSyDtcxjCmQynRWm__qMromDVEmYYwoXLTU4")
 
-model = genai.GenerativeModel('gemini-1.5-flash') # Using a common free-tier model
+model = genai.GenerativeModel('gemini-2.5-flash') # Using a common free-tier model
 
 # Generate text from a text prompt
 def response(query):
