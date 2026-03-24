@@ -14,7 +14,7 @@ if not GEMINI_API_KEY:
 genai.configure(api_key=GEMINI_API_KEY)
 
 # Initialize model ONCE
-model = genai.GenerativeModel("models/gemini-flash-latest")
+model = genai.GenerativeModel("models/gemini-2.5-flash")
 
 
 def summarize_text(text: str) -> str:

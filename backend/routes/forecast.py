@@ -1,6 +1,6 @@
 from fastapi import APIRouter, UploadFile
 import pandas as pd
-from backend.services.gemini_utils import forecast_kpi_description
+from services.gemini_utils import forecast_kpi_description
 
 router = APIRouter()
 

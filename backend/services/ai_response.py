@@ -1,13 +1,14 @@
 import google.generativeai as genai
+from dotenv import load_dotenv
 import os
 
-# The API key will be automatically picked up from the GOOGLE_API_KEY environment variable.
-# If you used GEMINI_API_KEY, it will also be picked up, but GOOGLE_API_KEY takes precedence.
+load_dotenv()
 
-# Or, if you specifically set GEMINI_API_KEY:
-genai.configure(api_key="AIzaSyDtcxjCmQynRWm__qMromDVEmYYwoXLTU4")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
-model = genai.GenerativeModel('gemini-2.5-flash') # Using a common free-tier model
+genai.configure(api_key=GEMINI_API_KEY)
+
+model = genai.GenerativeModel('models/gemini-2.5-flash') # Using a common free-tier model
 
 # Generate text from a text prompt
 def response(query):

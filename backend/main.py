@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from fastapi import FastAPI
-from backend.routes import summarization, feedback, forecast, anomaly, tips, chat
+from routes import summarization, feedback, forecast, anomaly, tips, chat
 
 app = FastAPI()
 
