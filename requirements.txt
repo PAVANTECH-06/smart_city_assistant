@@ -7,3 +7,5 @@ scikit-learn
 pandas
 python-dotenv
 google-generativeai
+deep-translator
+python-multipart

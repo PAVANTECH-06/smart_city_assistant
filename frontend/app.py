@@ -1,75 +1,100 @@
 import streamlit as st
 import requests
-from googletrans import Translator
 
 st.set_page_config(page_title="Smart City Assistant", layout="centered")
 
 API_URL = "http://localhost:8000"
 
-# -----------------------------
-# Translator Setup
-# -----------------------------
-translator = Translator()
+# ==============================
+# 🔥 Batch Translation Function
+# ==============================
+@st.cache_data(show_spinner=False)
+def translate_batch(texts, target_lang):
+    if target_lang == "English":
+        return texts
 
-def translate_text(text, target_lang):
     try:
-        result = translator.translate(str(text), dest=target_lang)
-        return result.text
+        res = requests.post(
+            f"{API_URL}/translate",
+            json={
+                "texts": texts,
+                "target_lang": target_lang
+            }
+        )
+        return res.json().get("translated", texts)
     except:
-        return text
+        return texts
 
 
-# -----------------------------
-# Language Selection
-# -----------------------------
+# ==============================
+# 🌐 Language Selection
+# ==============================
 language_dict = {
-    "English": "en",
-    "Hindi": "hi",
-    "Telugu": "te"
+    "English": "English",
+    "Hindi": "Hindi",
+    "Telugu": "Telugu"
 }
 
 selected_language = st.selectbox("🌐 Select Language", list(language_dict.keys()))
 lang_code = language_dict[selected_language]
 
 
-# -----------------------------
-# Title Section
-# -----------------------------
-title = "🌱 Sustainable Smart City Assistant"
-subtitle = "Empowering cities with AI for smarter, greener living."
+# ==============================
+# 🔥 FULL UI TRANSLATION
+# ==============================
+ui_texts = [
+    "🌱 Sustainable Smart City Assistant",
+    "Empowering cities with AI for smarter, greener living.",
+    "📊 Choose a Module",
+    "Summarize Policy",
+    "Submit Feedback",
+    "Forecast KPIs",
+    "Detect Anomalies",
+    "Get Eco Tips",
+    "Ask the Assistant"
+]
 
-st.title(translate_text(title, lang_code))
-st.markdown(translate_text(subtitle, lang_code))
+translated = translate_batch(ui_texts, lang_code)
+
+(
+    title,
+    subtitle,
+    sidebar_title,
+    m1, m2, m3, m4, m5, m6
+) = translated
+
+# ==============================
+# 🏷️ Title Section
+# ==============================
+st.title(title)
+st.markdown(subtitle)
+
+# ==============================
+# 📊 Sidebar Modules
+# ==============================
+modules = [m1, m2, m3, m4, m5, m6]
+
+selected = st.sidebar.radio(sidebar_title, modules)
+
+# Map back to original English
+original_modules = [
+    "Summarize Policy",
+    "Submit Feedback",
+    "Forecast KPIs",
+    "Detect Anomalies",
+    "Get Eco Tips",
+    "Ask the Assistant"
+]
+
+mapping = dict(zip(modules, original_modules))
+option = mapping[selected]
 
 
-# =====================================================
-# SIDEBAR MODULE TRANSLATION FIX
-# =====================================================
-
-# Internal English Keys
-module_dict = {
-    "Summarize Policy": "Summarize Policy",
-    "Submit Feedback": "Submit Feedback",
-    "Forecast KPIs": "Forecast KPIs",
-    "Detect Anomalies": "Detect Anomalies",
-    "Get Eco Tips": "Get Eco Tips",
-    "Ask the Assistant": "Ask the Assistant"
-}
-
-# Translate for Display
-translated_modules = {
-    key: translate_text(value, lang_code)
-    for key, value in module_dict.items()
-}
-
-selected_translated = st.sidebar.radio(
-    translate_text("📊 Choose a Module", lang_code),
-    list(translated_modules.values())
-)
-
-# Reverse mapping back to English key
-reverse_lookup = {v: k for k, v in translated_modules.items()}
-option = reverse_lookup[selected_translated]
+# ==============================
+# 🔁 Helper (single text translate)
+# ==============================
+def t(text):
+    return translate_batch([text], lang_code)[0]
 
 
 # =====================================================
@@ -77,19 +102,19 @@ option = reverse_lookup[selected_translated]
 # =====================================================
 if option == "Summarize Policy":
 
-    st.subheader(translate_text("📄 Summarize a Policy Document", lang_code))
-    text = st.text_area(translate_text("Enter full policy or document content", lang_code))
+    st.subheader(t("📄 Summarize a Policy Document"))
+    text = st.text_area(t("Enter full policy or document content"))
 
-    if st.button(translate_text("Summarize", lang_code)):
+    if st.button(t("Summarize")):
 
         if not text.strip():
-            st.warning(translate_text("Please enter some text.", lang_code))
+            st.warning(t("Please enter some text."))
         else:
             res = requests.post(f"{API_URL}/summarize", json={"text": text})
 
             if res.status_code == 200:
-                summary = res.json().get("summary", "No summary returned.")
-                st.success(translate_text(summary, lang_code))
+                summary = res.json().get("summary", "")
+                st.success(t(summary))
             else:
                 st.error("Backend error")
 
@@ -99,32 +124,28 @@ if option == "Summarize Policy":
 # =====================================================
 elif option == "Submit Feedback":
 
-    st.subheader(translate_text("📝 Citizen Feedback", lang_code))
+    st.subheader(t("📝 Citizen Feedback"))
 
-    name = st.text_input(translate_text("Your Name", lang_code))
+    name = st.text_input(t("Your Name"))
 
     categories = ["Water", "Electricity", "Road", "Pollution", "Other"]
-    translated_categories = [translate_text(cat, lang_code) for cat in categories]
+    translated_categories = translate_batch(categories, lang_code)
 
-    selected_category_translated = st.selectbox(
-        translate_text("Category", lang_code),
-        translated_categories
-    )
+    selected_category = st.selectbox(t("Category"), translated_categories)
 
-    # Map back to English
-    category = categories[translated_categories.index(selected_category_translated)]
+    category = categories[translated_categories.index(selected_category)]
 
-    message = st.text_area(translate_text("Describe the issue", lang_code))
+    message = st.text_area(t("Describe the issue"))
 
-    if st.button(translate_text("Submit Feedback", lang_code)):
+    if st.button(t("Submit Feedback")):
 
         if name and message:
             payload = {"name": name, "message": message, "category": category}
             res = requests.post(f"{API_URL}/feedback", json=payload)
 
-            st.success(translate_text(res.json().get("message", ""), lang_code))
+            st.success(t(res.json().get("message", "")))
         else:
-            st.warning(translate_text("Please fill in all fields.", lang_code))
+            st.warning(t("Please fill in all fields."))
 
 
 # =====================================================
@@ -132,26 +153,26 @@ elif option == "Submit Feedback":
 # =====================================================
 elif option == "Forecast KPIs":
 
-    st.subheader(translate_text("📈 Upload KPI Data (CSV)", lang_code))
-    file = st.file_uploader(translate_text("Upload KPI CSV", lang_code), type=["csv"])
+    st.subheader(t("📈 Upload KPI Data (CSV)"))
+    file = st.file_uploader(t("Upload KPI CSV"), type=["csv"])
 
-    if file and st.button(translate_text("Forecast", lang_code)):
+    if file and st.button(t("Forecast")):
 
         res = requests.post(f"{API_URL}/forecast", files={"file": file})
-        forecast = res.json().get("forecast", "No forecast returned.")
+        forecast = res.json().get("forecast", "")
 
-        st.info(translate_text(f"Forecast: {forecast}", lang_code))
+        st.info(t(f"Forecast: {forecast}"))
 
 
 # =====================================================
-# 4️⃣ DETECT ANOMALIES (Dashboard Alert Working)
+# 4️⃣ DETECT ANOMALIES
 # =====================================================
 elif option == "Detect Anomalies":
 
-    st.subheader(translate_text("⚠️ Anomaly Detection", lang_code))
-    file = st.file_uploader(translate_text("Upload KPI CSV", lang_code), type=["csv"])
+    st.subheader(t("⚠️ Anomaly Detection"))
+    file = st.file_uploader(t("Upload KPI CSV"), type=["csv"])
 
-    if file and st.button(translate_text("Detect Anomalies", lang_code)):
+    if file and st.button(t("Detect Anomalies")):
 
         res = requests.post(f"{API_URL}/anomaly", files={"file": file})
 
@@ -159,18 +180,14 @@ elif option == "Detect Anomalies":
             result = res.json()
 
             if result.get("alert"):
-
-                st.error(translate_text("🚨 ANOMALY DETECTED!", lang_code))
+                st.error(t("🚨 ANOMALY DETECTED!"))
 
                 anomalies = result.get("anomalies", [])
-
                 if anomalies:
-                    st.write(translate_text("Detected Anomalies:", lang_code))
+                    st.write(t("Detected Anomalies:"))
                     st.table(anomalies)
-
             else:
-                st.success(translate_text("✅ No anomalies detected.", lang_code))
-
+                st.success(t("✅ No anomalies detected."))
         else:
             st.error("Backend error")
 
@@ -180,18 +197,18 @@ elif option == "Detect Anomalies":
 # =====================================================
 elif option == "Get Eco Tips":
 
-    st.subheader(translate_text("🌍 Eco Tips Generator", lang_code))
-    keyword = st.text_input(translate_text("Enter sustainability topic", lang_code))
+    st.subheader(t("🌍 Eco Tips Generator"))
+    keyword = st.text_input(t("Enter sustainability topic"))
 
-    if st.button(translate_text("Get Tips", lang_code)):
+    if st.button(t("Get Tips")):
 
         if keyword:
             res = requests.post(f"{API_URL}/tips", json={"keyword": keyword})
             tips = res.json().get("tips", "")
 
-            st.info(translate_text(tips, lang_code))
+            st.info(t(tips))
         else:
-            st.warning(translate_text("Please enter a keyword.", lang_code))
+            st.warning(t("Please enter a keyword."))
 
 
 # =====================================================
@@ -199,18 +216,18 @@ elif option == "Get Eco Tips":
 # =====================================================
 elif option == "Ask the Assistant":
 
-    st.subheader(translate_text("🤖 Chat with Assistant", lang_code))
-    query = st.text_input(translate_text("Ask your question", lang_code))
+    st.subheader(t("🤖 Chat with Assistant"))
+    query = st.text_input(t("Ask your question"))
 
-    if st.button(translate_text("Send", lang_code)):
+    if st.button(t("Send")):
 
         if not query:
-            st.warning(translate_text("Please type a question.", lang_code))
+            st.warning(t("Please type a question."))
         else:
             res = requests.post(f"{API_URL}/chat", json={"query": query})
 
             if res.status_code == 200:
                 response = res.json().get("response", "")
-                st.success(translate_text(response, lang_code))
+                st.success(t(response))
             else:
                 st.error("Backend error")

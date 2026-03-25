@@ -5,6 +5,7 @@ load_dotenv()
 
 from fastapi import FastAPI
 from routes import summarization, feedback, forecast, anomaly, tips, chat
+from routes import translate
 
 app = FastAPI()
 
@@ -14,6 +15,7 @@ app.include_router(forecast.router)
 app.include_router(anomaly.router)
 app.include_router(tips.router)
 app.include_router(chat.router)
+app.include_router(translate.router)
 @app.get("/")
 def root():
     return {"message": "Welcome to the Smart City Assistant API"}
