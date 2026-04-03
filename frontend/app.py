@@ -1,233 +1,196 @@
 import streamlit as st
 import requests
 
-st.set_page_config(page_title="Smart City Assistant", layout="centered")
+# ✅ MUST BE FIRST
+st.set_page_config(page_title="Smart City Login", layout="wide")
+st.markdown("""
+<style>
+/* Hide pages (app, user_dashboard, admin_dashboard) */
+[data-testid="stSidebarNav"] {
+    display: none;
+}
+
+/* Optional: clean spacing */
+section[data-testid="stSidebar"] > div {
+    padding-top: 1rem;
+}
+</style>
+""", unsafe_allow_html=True)
 
 API_URL = "http://localhost:8000"
 
-# ==============================
-# 🔥 Batch Translation Function
-# ==============================
-@st.cache_data(show_spinner=False)
-def translate_batch(texts, target_lang):
-    if target_lang == "English":
-        return texts
+# -----------------------------
+# SESSION STATE
+# -----------------------------
 
-    try:
-        res = requests.post(
-            f"{API_URL}/translate",
-            json={
-                "texts": texts,
-                "target_lang": target_lang
-            }
-        )
-        return res.json().get("translated", texts)
-    except:
-        return texts
+if "page" not in st.session_state:
+    st.session_state.page = "login"
 
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
 
-# ==============================
-# 🌐 Language Selection
-# ==============================
-language_dict = {
-    "English": "English",
-    "Hindi": "Hindi",
-    "Telugu": "Telugu"
+if "role" not in st.session_state:
+    st.session_state.role = None
+
+if "user_id" not in st.session_state:
+    st.session_state.user_id = None
+
+if "username" not in st.session_state:
+    st.session_state.username = None
+
+if "selected_role" not in st.session_state:
+    st.session_state.selected_role = None
+
+# -----------------------------
+# PAGE ROUTING (IMPORTANT)
+# -----------------------------
+if st.session_state.page == "user_dashboard":
+    from pages import user_dashboard
+    user_dashboard.run()
+    st.stop()
+
+elif st.session_state.page == "admin_dashboard":
+    from pages import admin_dashboard
+    admin_dashboard.run()
+    st.stop()
+
+# -----------------------------
+# SIMPLE CSS (SAFE)
+# -----------------------------
+st.markdown("""
+<style>
+.stApp {
+    background-color: #f4f6f9;
 }
+h1, h2, h3 {
+    color: #1f4e79;
+}
+</style>
+""", unsafe_allow_html=True)
 
-selected_language = st.selectbox("🌐 Select Language", list(language_dict.keys()))
-lang_code = language_dict[selected_language]
+# -----------------------------
+# LAYOUT
+# -----------------------------
+col1, col2 = st.columns([1, 1], gap="large")
 
+# =============================
+# LEFT PANEL
+# =============================
+with col1:
+    st.title("🏙️ Smart City Assistant")
 
-# ==============================
-# 🔥 FULL UI TRANSLATION
-# ==============================
-ui_texts = [
-    "🌱 Sustainable Smart City Assistant",
-    "Empowering cities with AI for smarter, greener living.",
-    "📊 Choose a Module",
-    "Summarize Policy",
-    "Submit Feedback",
-    "Forecast KPIs",
-    "Detect Anomalies",
-    "Get Eco Tips",
-    "Ask the Assistant"
-]
+    st.write("Empowering cities with AI-driven insights for smarter, greener, and sustainable living.")
 
-translated = translate_batch(ui_texts, lang_code)
+    st.markdown("### ✨ Features")
+    st.write("📊 Real-time Analytics")
+    st.write("🌍 Sustainability Insights")
+    st.write("⚡ Smart Monitoring")
+    st.write("🤖 AI Assistant")
 
-(
-    title,
-    subtitle,
-    sidebar_title,
-    m1, m2, m3, m4, m5, m6
-) = translated
+    st.write("")
+    st.caption("Built for Smart Governance & Future Cities 🚀")
 
-# ==============================
-# 🏷️ Title Section
-# ==============================
-st.title(title)
-st.markdown(subtitle)
+# =============================
+# RIGHT PANEL (LOGIN)
+# =============================
+with col2:
 
-# ==============================
-# 📊 Sidebar Modules
-# ==============================
-modules = [m1, m2, m3, m4, m5, m6]
+    st.title("🔐 Login")
 
-selected = st.sidebar.radio(sidebar_title, modules)
+    # ROLE BUTTONS
+    col_btn1, col_btn2 = st.columns(2)
 
-# Map back to original English
-original_modules = [
-    "Summarize Policy",
-    "Submit Feedback",
-    "Forecast KPIs",
-    "Detect Anomalies",
-    "Get Eco Tips",
-    "Ask the Assistant"
-]
+    with col_btn1:
+        if st.button("👤 User"):
+            st.session_state.selected_role = "User"
 
-mapping = dict(zip(modules, original_modules))
-option = mapping[selected]
+    with col_btn2:
+        if st.button("👑 Admin"):
+            st.session_state.selected_role = "Admin"
 
+    role = st.session_state.selected_role
 
-# ==============================
-# 🔁 Helper (single text translate)
-# ==============================
-def t(text):
-    return translate_batch([text], lang_code)[0]
+    # BACK BUTTON
+    if role:
+        if st.button("⬅ Back"):
+            st.session_state.selected_role = None
+            st.rerun()
 
+    # =============================
+    # USER LOGIN
+    # =============================
+    if role == "User":
 
-# =====================================================
-# 1️⃣ SUMMARIZE POLICY
-# =====================================================
-if option == "Summarize Policy":
+        tab1, tab2 = st.tabs(["Sign In", "Sign Up"])
 
-    st.subheader(t("📄 Summarize a Policy Document"))
-    text = st.text_area(t("Enter full policy or document content"))
+        # -------- LOGIN --------
+        with tab1:
+            username = st.text_input("Username", key="login_user")
+            password = st.text_input("Password", type="password", key="login_pass")
 
-    if st.button(t("Summarize")):
+            if st.button("Login"):
+                res = requests.post(f"{API_URL}/auth/login", json={
+                    "username": username,
+                    "password": password
+                })
 
-        if not text.strip():
-            st.warning(t("Please enter some text."))
-        else:
-            res = requests.post(f"{API_URL}/summarize", json={"text": text})
+                if res.status_code == 200:
+                    data = res.json()
 
-            if res.status_code == 200:
-                summary = res.json().get("summary", "")
-                st.success(t(summary))
-            else:
-                st.error("Backend error")
+                    st.session_state.logged_in = True
+                    st.session_state.role = data["role"]
+                    st.session_state.user_id = data["user_id"]
+                    st.session_state.username = data["username"]
 
+                    st.success(f"Welcome {data['username']} 👋")
 
-# =====================================================
-# 2️⃣ SUBMIT FEEDBACK
-# =====================================================
-elif option == "Submit Feedback":
+                    st.session_state.page = "user_dashboard"
+                    st.rerun()
 
-    st.subheader(t("📝 Citizen Feedback"))
+                else:
+                    st.error(f"Login failed: {res.text}")
 
-    name = st.text_input(t("Your Name"))
+        # -------- SIGNUP --------
+        with tab2:
+            new_user = st.text_input("New Username", key="signup_user")
+            new_pass = st.text_input("New Password", type="password", key="signup_pass")
 
-    categories = ["Water", "Electricity", "Road", "Pollution", "Other"]
-    translated_categories = translate_batch(categories, lang_code)
+            if st.button("Create Account"):
+                res = requests.post(f"{API_URL}/auth/signup", json={
+                    "username": new_user,
+                    "password": new_pass
+                })
 
-    selected_category = st.selectbox(t("Category"), translated_categories)
+                if res.status_code == 200:
+                    st.success("Account created 🎉")
+                else:
+                    st.error("User already exists")
 
-    category = categories[translated_categories.index(selected_category)]
+    # =============================
+    # ADMIN LOGIN
+    # =============================
+    elif role == "Admin":
 
-    message = st.text_area(t("Describe the issue"))
+        username = st.text_input("Admin Username", key="admin_user")
+        password = st.text_input("Admin Password", type="password", key="admin_pass")
 
-    if st.button(t("Submit Feedback")):
-
-        if name and message:
-            payload = {"name": name, "message": message, "category": category}
-            res = requests.post(f"{API_URL}/feedback", json=payload)
-
-            st.success(t(res.json().get("message", "")))
-        else:
-            st.warning(t("Please fill in all fields."))
-
-
-# =====================================================
-# 3️⃣ FORECAST KPIs
-# =====================================================
-elif option == "Forecast KPIs":
-
-    st.subheader(t("📈 Upload KPI Data (CSV)"))
-    file = st.file_uploader(t("Upload KPI CSV"), type=["csv"])
-
-    if file and st.button(t("Forecast")):
-
-        res = requests.post(f"{API_URL}/forecast", files={"file": file})
-        forecast = res.json().get("forecast", "")
-
-        st.info(t(f"Forecast: {forecast}"))
-
-
-# =====================================================
-# 4️⃣ DETECT ANOMALIES
-# =====================================================
-elif option == "Detect Anomalies":
-
-    st.subheader(t("⚠️ Anomaly Detection"))
-    file = st.file_uploader(t("Upload KPI CSV"), type=["csv"])
-
-    if file and st.button(t("Detect Anomalies")):
-
-        res = requests.post(f"{API_URL}/anomaly", files={"file": file})
-
-        if res.status_code == 200:
-            result = res.json()
-
-            if result.get("alert"):
-                st.error(t("🚨 ANOMALY DETECTED!"))
-
-                anomalies = result.get("anomalies", [])
-                if anomalies:
-                    st.write(t("Detected Anomalies:"))
-                    st.table(anomalies)
-            else:
-                st.success(t("✅ No anomalies detected."))
-        else:
-            st.error("Backend error")
-
-
-# =====================================================
-# 5️⃣ ECO TIPS
-# =====================================================
-elif option == "Get Eco Tips":
-
-    st.subheader(t("🌍 Eco Tips Generator"))
-    keyword = st.text_input(t("Enter sustainability topic"))
-
-    if st.button(t("Get Tips")):
-
-        if keyword:
-            res = requests.post(f"{API_URL}/tips", json={"keyword": keyword})
-            tips = res.json().get("tips", "")
-
-            st.info(t(tips))
-        else:
-            st.warning(t("Please enter a keyword."))
-
-
-# =====================================================
-# 6️⃣ CHAT ASSISTANT
-# =====================================================
-elif option == "Ask the Assistant":
-
-    st.subheader(t("🤖 Chat with Assistant"))
-    query = st.text_input(t("Ask your question"))
-
-    if st.button(t("Send")):
-
-        if not query:
-            st.warning(t("Please type a question."))
-        else:
-            res = requests.post(f"{API_URL}/chat", json={"query": query})
+        if st.button("Login as Admin"):
+            res = requests.post(f"{API_URL}/auth/login", json={
+                "username": username,
+                "password": password
+            })
 
             if res.status_code == 200:
-                response = res.json().get("response", "")
-                st.success(t(response))
+                data = res.json()
+
+                st.session_state.logged_in = True
+                st.session_state.role = data["role"]
+                st.session_state.username = data["username"]
+
+                st.success(f"Welcome Admin {data['username']} 👑")
+
+                st.session_state.page = "admin_dashboard"
+                st.rerun()
+
             else:
-                st.error("Backend error")
+                st.error(f"Login failed: {res.text}")

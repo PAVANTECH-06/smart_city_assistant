@@ -5,6 +5,7 @@ streamlit
 requests
 scikit-learn
 pandas
+matplotlib
 python-dotenv
 google-generativeai
 deep-translator

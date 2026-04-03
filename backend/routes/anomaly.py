@@ -8,31 +8,32 @@ router = APIRouter()
 # -----------------------------
 # Z-Score Anomaly Detection
 # -----------------------------
-def detect_anomalies(df, threshold=3):
+def detect_anomalies(df):
     anomaly_report = []
 
     numeric_columns = df.select_dtypes(include=[np.number]).columns
 
     for col in numeric_columns:
-        mean = df[col].mean()
-        std = df[col].std()
 
-        if std == 0:
-            continue
+        Q1 = df[col].quantile(0.25)
+        Q3 = df[col].quantile(0.75)
+        IQR = Q3 - Q1
 
-        z_scores = (df[col] - mean) / std
-        outliers = df[np.abs(z_scores) > threshold]
+        lower_bound = Q1 - 1.5 * IQR
+        upper_bound = Q3 + 1.5 * IQR
+
+        outliers = df[(df[col] < lower_bound) | (df[col] > upper_bound)]
 
         if not outliers.empty:
             for value in outliers[col].values:
                 anomaly_report.append({
                     "column": col,
                     "value": float(value),
-                    "mean": float(mean),
-                    "std": float(std)
+                    "lower_bound": float(lower_bound),
+                    "upper_bound": float(upper_bound)
                 })
 
-                # Trigger real-time alert
+                # Trigger alert
                 trigger_alert(col, value)
 
     return anomaly_report
