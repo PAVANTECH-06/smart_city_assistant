@@ -4,7 +4,7 @@ def run():
     import pandas as pd
     import matplotlib.pyplot as plt
 
-    BASE_URL = "http://127.0.0.1:8000"
+    BASE_URL = "http://127.0.0.1:8000"  # 🔥 change to deployed URL later
 
     # ==============================
     # 🎨 CLEAN UI (HIDE PAGES)
@@ -32,7 +32,6 @@ def run():
     st.title("📊 Admin Dashboard")
     st.success(f"Welcome Admin {st.session_state.username} 👑")
 
-    # Logout button (top-right style)
     col1, col2 = st.columns([8, 2])
     with col2:
         if st.button("🚪 Logout"):
@@ -46,16 +45,13 @@ def run():
     # ==============================
     col1, col2, col3 = st.columns(3)
 
-    # Total Users
     res_users = requests.get(f"{BASE_URL}/admin/total-users")
     total_users = res_users.json().get("total_users", 0) if res_users.status_code == 200 else 0
 
-    # Active Users
     res_active = requests.get(f"{BASE_URL}/admin/active-users")
     active_data = res_active.json() if res_active.status_code == 200 else []
     active_users = len(active_data)
 
-    # Feedback Count
     res_feedback = requests.get(f"{BASE_URL}/admin/feedbacks")
     feedback_data = res_feedback.json() if res_feedback.status_code == 200 else []
     total_feedback = len(feedback_data)
@@ -67,7 +63,7 @@ def run():
     st.markdown("---")
 
     # ==============================
-    # 📊 MODULE USAGE (BAR + PIE)
+    # 📊 MODULE USAGE (FIXED UI)
     # ==============================
     st.subheader("📊 Module Usage Analytics")
 
@@ -79,25 +75,32 @@ def run():
         if data:
             df = pd.DataFrame(data)
 
+            # 🔥 SIDE-BY-SIDE LAYOUT
+            col1, col2 = st.columns(2)
+
             # -------- BAR CHART --------
-            st.markdown("### 📊 Usage Count (Bar Chart)")
+            with col1:
+                st.markdown("### 📊 Usage Count")
 
-            fig1, ax1 = plt.subplots()
-            ax1.bar(df["module"], df["count"])
-            ax1.set_xlabel("Modules")
-            ax1.set_ylabel("Usage Count")
-            ax1.set_title("Module Usage")
+                fig1, ax1 = plt.subplots(figsize=(5, 3))
+                ax1.bar(df["module"], df["count"])
+                ax1.set_xlabel("Modules")
+                ax1.set_ylabel("Usage")
+                ax1.set_title("Module Usage")
 
-            st.pyplot(fig1)
+                plt.tight_layout()
+                st.pyplot(fig1)
 
             # -------- PIE CHART --------
-            st.markdown("### 🥧 Usage Distribution")
+            with col2:
+                st.markdown("### 🥧 Distribution")
 
-            fig2, ax2 = plt.subplots()
-            ax2.pie(df["count"], labels=df["module"], autopct='%1.1f%%')
-            ax2.set_title("Usage Share")
+                fig2, ax2 = plt.subplots(figsize=(4, 4))
+                ax2.pie(df["count"], labels=df["module"], autopct="%1.1f%%")
+                ax2.set_title("Usage Share")
 
-            st.pyplot(fig2)
+                plt.tight_layout()
+                st.pyplot(fig2)
 
         else:
             st.info("No module usage data available")
@@ -111,7 +114,7 @@ def run():
 
     if active_data:
         df_active = pd.DataFrame(active_data)
-        st.dataframe(df_active)
+        st.dataframe(df_active, use_container_width=True)
     else:
         st.info("No active users data")
 
@@ -122,6 +125,6 @@ def run():
 
     if feedback_data:
         df_feedback = pd.DataFrame(feedback_data)
-        st.dataframe(df_feedback)
+        st.dataframe(df_feedback, use_container_width=True)
     else:
         st.info("No feedback available")
